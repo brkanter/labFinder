@@ -4,7 +4,7 @@ Is there a map of research universities? I couldn't find one, so I'm working on 
 
 Browse around, click on pins, follow the links to university websites and check out what they have to offer.
 
-![Image](\screenshot.png)
+![Image](https://github.com/brkanter/labFinder/blob/master/screenshot.PNG)
 
 To do:
   * Expand list of universities beyond R1 and beyond the United States.
