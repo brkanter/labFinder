@@ -4,6 +4,8 @@ Is there a map of research universities? I couldn't find one, so I'm working on 
 
 Browse around, click on pins, follow the links to university websites and check out what they have to offer.
 
+![Image](C:\Users\benjamka\GitHub\labFinder\screenshot.png)
+
 To do:
   * Expand list of universities beyond R1 and beyond the United States.
   * Restrict to neuroscience/neurobiology research, or somehow label by subject matter.
