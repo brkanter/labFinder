@@ -87,9 +87,11 @@ else:
 result['lat'] = [ url.split('?center=')[1].split('&zoom=')[0].split('%2C')[0] for url in result['Url_With_Coordinates'] ]
 result['long'] = [url.split('?center=')[1].split('&zoom=')[0].split('%2C')[1] for url in result['Url_With_Coordinates'] ]
 
-# fix Reno coords that were retrieved incorrectly
+# fix coords that were retrieved incorrectly
 result.loc[(result.loc[:,'City'] == 'Reno'),'lat'] = 39.533
 result.loc[(result.loc[:,'City'] == 'Reno'),'long'] = -119.813
+result.loc[(result.loc[:,'Institution'] == 'University of Washington'),'lat'] = 47.656
+result.loc[(result.loc[:,'Institution'] == 'University of Washington'),'long'] = -122.311
 
 # get school websites      
 result['Website'] = [ getWebsites(url) for url in result['Wiki'] ]
