@@ -9,7 +9,7 @@ Browse around, click on pins, follow the links to university websites and check 
 ![Image](https://github.com/brkanter/labFinder/blob/master/screenshot.PNG)
 
 To do:
-  * Expand list of universities beyond R1 and beyond the United States.
+  * Expand beyond the United States.
   * Restrict to neuroscience/neurobiology research, or somehow label by subject matter.
   * Try to incorporate open positions / hiring information.
 
