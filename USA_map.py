@@ -56,7 +56,7 @@ R1 = pd.read_html(url)[0]
 R2 = pd.read_html(url)[1]
 R1['R_rating'] = 1;
 R2['R_rating'] = 2;
-df = pd.concat([R1,R2])
+df = pd.concat([R1,R2]).reset_index()
 
 # create URLs
 df['Institution+'] = df['Institution']
@@ -104,29 +104,62 @@ df.loc[(df.loc[:,'Institution'] == 'University of New England'),'Website'] = 'ht
 df.loc[(df.loc[:,'Institution'] == 'University of Colorado Denver/Anschutz-Medical Campus'),'Website'] = 'https://www.cuanschutz.edu/'
 
 # drop unneeded columns
-df = df.drop(columns=['Institution+','Institution_','Map_URL','Wiki'])
+df = df.drop(columns=['Institution+','Institution_','Map_URL','Wiki','index'])
+
+#%% funding info
+dfe = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\Worldwide2019.xls", sheet_name=0)
+dfepiv = dfe.pivot_table(values=['FUNDING'],index=['ORGANIZATION NAME','CITY','STATE OR COUNTRY NAME'], aggfunc='sum')
+flattened = pd.DataFrame(dfepiv.to_records())
+schools = flattened[flattened['ORGANIZATION NAME'].str.contains('UNIVERSITY') | flattened['ORGANIZATION NAME'].str.contains('COLLEGE')]
+schools = schools.reset_index()
+schools = schools.drop(columns=['index'])
+
+# make sure school and city match
+for i in range(np.shape(df)[0]):
+    money = 0
+    for j in range(np.shape(schools)[0]):
+        if schools.loc[j,'ORGANIZATION NAME'].lower().startswith(df.loc[i,'Institution'].lower()):
+            if schools.loc[j,'CITY'].lower().startswith(df.loc[i,'City'].lower()):
+                money += schools.loc[j,'FUNDING']
+    if money > 0:
+        df.loc[i,'Funding'] = money
+    else:
+        df.loc[i,'Funding'] = None
+        
+# scale funding amounts to suit marker size
+df['Funding_scaled'] = df['Funding']
+df['Funding_scaled'] = ( ((30 * (df['Funding'] - np.min(df['Funding']))
+                         / (np.max(df['Funding']) - np.min(df['Funding']))) ) + 3 )
 
 #%% make the map
 import folium
 import webbrowser
 import branca
 import pickle
+import locale
+locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
 
 m = folium.Map(location=[38, -97], zoom_start=5)
 
+fundPlt = df['Funding_scaled'].copy().fillna(value=3)
+
 # popup school website links 
-for lat, long, name, site, rating in zip(df.Lat, df.Long, df.Institution, df.Website, df.R_rating):
+for lat, long, name, site, rating, dollas, funding in zip(df.Lat, df.Long, df.Institution, df.Website, df.R_rating, df.Funding, fundPlt):
     
     if rating == 1:
-        html = '<p style="font-size:105%;font-name:Arial;text-align:left;"> <a href="' + site + '" target="_blank">' + name + '</a><br><br>R1: Very high research</p>'
+        html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
+                '<a href="' + site + '" target="_blank">' 
+                + name + '</a><br><br>R1: Very high research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.Marker([lat, long], popup=popup, icon=folium.Icon(color='darkblue',icon='circle')).add_to(m)
+        folium.CircleMarker([lat, long], radius = funding, fill=True,popup=popup, color='darkblue').add_to(m) 
     elif rating == 2:
-        html = '<p style="font-size:105%;font-name:Arial;text-align:left;"> <a href="' + site + '" target="_blank">' + name + '</a><br><br>R2: High research</p>'
+        html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
+                '<a href="' + site + '" target="_blank">'
+                + name + '</a><br><br>R2: High research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.Marker([lat, long], popup=popup, icon=folium.Icon(color='darkred',icon='circle')).add_to(m) 
+        folium.CircleMarker([lat, long], radius = funding, fill=True,popup=popup, color='darkred').add_to(m) 
 
 # write and open
 outputFile = "USA_map.html"

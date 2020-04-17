@@ -13,4 +13,8 @@ To do:
   * Restrict to neuroscience/neurobiology research, or somehow label by subject matter.
   * Try to incorporate open positions / hiring information.
 
+Notes:
+  * Blue = R1 rating, Red = R2 rating
+  * Marker size scales with NIH 2019 funding.
+
 Please get in touch with suggestions and feedback.
