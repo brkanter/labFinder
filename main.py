@@ -5,12 +5,18 @@ Created Apr 2020
 @author: Benjamin R. Kanter
 """
 
+# %% init
 import numpy as np
 import pandas as pd
 import csv
 import requests
+import folium
+import webbrowser
+import branca
+import pickle
+import locale
 
-scrapeCoords = True # True to scrap GoogleMap coordinates, False to read them from csv file
+scrapeCoords = False # True to scrap GoogleMap coordinates, False to read them from csv file
 
 def scrapeGmapCoords(df):
     """Use Chrome to search Google Maps"""
@@ -86,7 +92,7 @@ else:
 df['Lat'] = [ url.split('?center=')[1].split('&zoom=')[0].split('%2C')[0] for url in df['Url_With_Coordinates'] ]
 df['Long'] = [url.split('?center=')[1].split('&zoom=')[0].split('%2C')[1] for url in df['Url_With_Coordinates'] ]
 
-# fix coords that were retrieved incorrectly
+# fix coords that are retrieved incorrectly
 df.loc[(df.loc[:,'Institution'] == 'University of Nevada, Reno'),'Lat'] = 39.533
 df.loc[(df.loc[:,'Institution'] == 'University of Nevada, Reno'),'Long'] = -119.813
 df.loc[(df.loc[:,'Institution'] == 'University of Washington'),'Lat'] = 47.656
@@ -132,18 +138,16 @@ df['Funding_scaled'] = ( ((30 * (df['Funding'] - np.min(df['Funding']))
                          / (np.max(df['Funding']) - np.min(df['Funding']))) ) + 3 )
 
 #%% make the map
-import folium
-import webbrowser
-import branca
-import pickle
-import locale
 locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
 
 m = folium.Map(location=[38, -97], zoom_start=5)
 
+with open('USA_map.pkl', 'rb') as pickl:
+    df = pickle.load(pickl)
+    
 fundPlt = df['Funding_scaled'].copy().fillna(value=3)
 
-# popup school website links 
+# popup school website links and funding info
 for lat, long, name, site, rating, dollas, funding in zip(df.Lat, df.Long, df.Institution, df.Website, df.R_rating, df.Funding, fundPlt):
     
     if rating == 1:
@@ -163,6 +167,86 @@ for lat, long, name, site, rating, dollas, funding in zip(df.Lat, df.Long, df.In
 
 # write and open
 outputFile = "USA_map.html"
+# m.save(outputFile)
+# pickle.dump(df,open("USA_map.pkl","wb"))
+webbrowser.open(outputFile, new=2)
+
+# %% europe
+
+df_euro = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\european_institutes.xlsx", sheet_name=0)
+df_euro['Lat'] = 0
+df_euro['Long'] = 0
+for i, url in enumerate(df_euro['Url_With_Coordinates']):
+    try:
+        df_euro['Lat'].iloc[i] = url.split('/@')[1].split(',')[0]
+        df_euro['Long'].iloc[i] = url.split('/@')[1].split(',')[1].split(',')[0]
+    except:
+        print(i)
+        
+locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
+
+m = folium.Map(location=[56, 10], zoom_start=4)
+
+# with open('Euro_map.pkl', 'rb') as pickl:
+#     df = pickle.load(pickl)
+    
+# popup school website links 
+for lat, long, name, site, pop in zip(df_euro.Lat, df_euro.Long, df_euro.Institution, df_euro.Website, df_euro.Population):
+    
+    pop_str = "%.0f" % pop
+    html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
+            '<a href="' + site + '" target="_blank">' 
+            + name + '</a><br><br>Population = ' + pop_str + '</p>' )
+    el = branca.element.IFrame(html=html, width=250, height=105)
+    popup = folium.Popup(el)
+    folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='darkblue').add_to(m) 
+    
+outputFile = "Euro_map.html"
 m.save(outputFile)
-pickle.dump(df,open("USA_map.pkl","wb"))
+pickle.dump(df, open("Euro_map.pkl","wb"))
+webbrowser.open(outputFile, new=2)
+
+# %% world
+
+# df_world = pd.concat([df, df_euro])
+
+locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
+
+m = folium.Map(location=[35, -40], zoom_start=3)
+
+# with open('World_map.pkl', 'rb') as pickl:
+#     df = pickle.load(pickl)
+    
+# popup school website links and funding info
+for lat, long, name, site, rating, dollas, funding in zip(df.Lat, df.Long, df.Institution, df.Website, df.R_rating, df.Funding, fundPlt):
+    
+    if rating == 1:
+        html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
+                '<a href="' + site + '" target="_blank">' 
+                + name + '</a><br><br>R1: Very high research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
+        el = branca.element.IFrame(html=html, width=250, height=105)
+        popup = folium.Popup(el)
+        folium.CircleMarker([lat, long], radius = funding, fill=True,popup=popup, color='darkblue').add_to(m) 
+    elif rating == 2:
+        html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
+                '<a href="' + site + '" target="_blank">'
+                + name + '</a><br><br>R2: High research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
+        el = branca.element.IFrame(html=html, width=250, height=105)
+        popup = folium.Popup(el)
+        folium.CircleMarker([lat, long], radius = funding, fill=True,popup=popup, color='darkred').add_to(m) 
+
+# popup school website links 
+for lat, long, name, site, pop in zip(df_euro.Lat, df_euro.Long, df_euro.Institution, df_euro.Website, df_euro.Population):
+    
+    pop_str = "%.0f" % pop
+    html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
+            '<a href="' + site + '" target="_blank">' 
+            + name + '</a><br><br>Population = ' + pop_str + '</p>' )
+    el = branca.element.IFrame(html=html, width=250, height=105)
+    popup = folium.Popup(el)
+    folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='purple').add_to(m) 
+    
+outputFile = "World_map.html"
+m.save(outputFile)
+pickle.dump(df, open("World_map.pkl","wb"))
 webbrowser.open(outputFile, new=2)
