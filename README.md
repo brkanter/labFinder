@@ -14,7 +14,6 @@ To do:
   * Try to incorporate open positions / hiring information.
 
 Notes:
-  * Blue = R1 rating, Red = R2 rating, Purple = Outside USA
-  * Marker size scales with NIH 2019 funding for USA.
+  * Blue = R1 rating, Red = R2 rating, Purple = Other
 
 Please get in touch with suggestions and feedback.
