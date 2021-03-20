@@ -171,7 +171,7 @@ outputFile = "USA_map.html"
 # pickle.dump(df_USA,open("USA_map.pkl","wb"))
 webbrowser.open(outputFile, new=2)
 
-# %% world
+# %% make world map
 
 df_nonUSA = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\institutes.xlsx", sheet_name=0)
 df_nonUSA['Lat'] = 0
@@ -190,7 +190,7 @@ m = folium.Map(location=[40, -40], zoom_start=2)
 # with open('World_map.pkl', 'rb') as pickl:
 #     df_world = pickle.load(pickl)
     
-# popup school website links and funding info
+# markers for USA
 for lat, long, name, site, rating, dollas, funding in zip(df_USA.Lat, df_USA.Long, df_USA.Institution, df_USA.Website, df_USA.R_rating, df_USA.Funding, fundPlt):
     
     if rating == 1:
@@ -199,16 +199,16 @@ for lat, long, name, site, rating, dollas, funding in zip(df_USA.Lat, df_USA.Lon
                 + name + '</a><br><br>R1: Very high research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='darkblue').add_to(m) 
+        folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='darkblue', opacity=0.7).add_to(m) 
     elif rating == 2:
         html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
                 '<a href="' + site + '" target="_blank">'
                 + name + '</a><br><br>R2: High research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.CircleMarker([lat, long], radius = 7, fill=True,popup=popup, color='darkred').add_to(m) 
+        folium.CircleMarker([lat, long], radius = 7, fill=True,popup=popup, color='darkred', opacity=0.7).add_to(m) 
 
-# popup school website links 
+# markers outside USA
 for lat, long, name, site, pop in zip(df_nonUSA.Lat, df_nonUSA.Long, df_nonUSA.Institution, df_nonUSA.Website, df_nonUSA.Population):
     
     pop_str = "%.0f" % pop
@@ -217,9 +217,9 @@ for lat, long, name, site, pop in zip(df_nonUSA.Lat, df_nonUSA.Long, df_nonUSA.I
             + name + '</a><br><br>Population = ' + pop_str + '</p>' )
     el = branca.element.IFrame(html=html, width=250, height=105)
     popup = folium.Popup(el)
-    folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='purple').add_to(m) 
+    folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='#4C0099', opacity=0.7).add_to(m) 
     
-df_world = pd.concat([df_USA, df_nonUSA])
+df_world = pd.concat([df_USA, df_nonUSA], sort=False)
 outputFile = "labFinder.html"
 m.save(outputFile)
 pickle.dump(df_world, open("world_map.pkl","wb"))
