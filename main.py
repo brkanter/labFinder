@@ -50,13 +50,12 @@ def getWebsites(url):
         db = pd.read_html(website,match='Website',encoding="UTF-8")
         db = pd.DataFrame(db[0])
         db.columns = ['Label','Data']
-        # print('success: ' + url)
         return 'https://' + db.loc[(db.loc[:,'Label'] == 'Website'),'Data'].iloc[0]
         
     except:
         print('FAIL: ' + url)
 
-#%% get list of schools from Wikipedia and find them on GoogleMaps
+# %% get list of schools from Wikipedia and find them on GoogleMaps
 url = 'https://en.wikipedia.org/wiki/List_of_research_universities_in_the_United_States'
 R1 = pd.read_html(url)[0]
 R2 = pd.read_html(url)[1]
@@ -112,7 +111,7 @@ df_USA.loc[(df_USA.loc[:,'Institution'] == 'University of Colorado Denver/Anschu
 # drop unneeded columns
 df_USA = df_USA.drop(columns=['Institution+','Institution_','Map_URL','Wiki','index'])
 
-#%% funding info
+# %% funding info
 dfe = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\Worldwide2019.xls", sheet_name=0)
 dfepiv = dfe.pivot_table(values=['FUNDING'],index=['ORGANIZATION NAME','CITY','STATE OR COUNTRY NAME'], aggfunc='sum')
 flattened = pd.DataFrame(dfepiv.to_records())
@@ -137,42 +136,10 @@ df_USA['Funding_scaled'] = df_USA['Funding']
 df_USA['Funding_scaled'] = ( ((30 * (df_USA['Funding'] - np.min(df_USA['Funding']))
                          / (np.max(df_USA['Funding']) - np.min(df_USA['Funding']))) ) + 3 )
 
-#%% make USA map
-locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
+# %% write data
+pickle.dump(df_USA, open("USA_map.pkl","wb"))
 
-m = folium.Map(location=[38, -97], zoom_start=5)
-
-with open('USA_map.pkl', 'rb') as pickl:
-    df_USA = pickle.load(pickl)
-    
-fundPlt = df_USA['Funding_scaled'].copy().fillna(value=3)
-
-# popup school website links and funding info
-for lat, long, name, site, rating, dollas, funding in zip(df_USA.Lat, df_USA.Long, df_USA.Institution, df_USA.Website, df_USA.R_rating, df_USA.Funding, fundPlt):
-    
-    if rating == 1:
-        html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-                '<a href="' + site + '" target="_blank">' 
-                + name + '</a><br><br>R1: Very high research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
-        el = branca.element.IFrame(html=html, width=250, height=105)
-        popup = folium.Popup(el)
-        folium.CircleMarker([lat, long], radius = funding, fill=True,popup=popup, color='darkblue').add_to(m) 
-    elif rating == 2:
-        html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-                '<a href="' + site + '" target="_blank">'
-                + name + '</a><br><br>R2: High research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
-        el = branca.element.IFrame(html=html, width=250, height=105)
-        popup = folium.Popup(el)
-        folium.CircleMarker([lat, long], radius = funding, fill=True,popup=popup, color='darkred').add_to(m) 
-
-# write and open
-outputFile = "USA_map.html"
-# m.save(outputFile)
-# pickle.dump(df_USA,open("USA_map.pkl","wb"))
-webbrowser.open(outputFile, new=2)
-
-# %% make world map
-
+# %% nonUSA map
 df_nonUSA = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\institutes.xlsx", sheet_name=0)
 df_nonUSA['Lat'] = 0
 df_nonUSA['Long'] = 0
@@ -182,41 +149,50 @@ for i, url in enumerate(df_nonUSA['Url_With_Coordinates']):
         df_nonUSA['Long'].iloc[i] = url.split('/@')[1].split(',')[1].split(',')[0]
     except:
         print(i)
-        
-locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
+    
+pickle.dump(df_nonUSA, open("nonUSA_map.pkl","wb"))
+
+# %% make world map
+
+with open('USA_map.pkl', 'rb') as pickl:
+    df_USA = pickle.load(pickl)
+with open('nonUSA_map.pkl', 'rb') as pickl:
+    df_nonUSA = pickle.load(pickl)
+    
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 m = folium.Map(location=[40, -40], zoom_start=2)
 
-# with open('World_map.pkl', 'rb') as pickl:
-#     df_world = pickle.load(pickl)
-    
 # markers for USA
-for lat, long, name, site, rating, dollas, funding in zip(df_USA.Lat, df_USA.Long, df_USA.Institution, df_USA.Website, df_USA.R_rating, df_USA.Funding, fundPlt):
-    
-    if rating == 1:
+for _, df in df_USA.iterrows():
+    if df.R_rating == 1:
         html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-                '<a href="' + site + '" target="_blank">' 
-                + name + '</a><br><br>R1: Very high research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
+                '<a href="' + df.Website + '" target="_blank">' 
+                + df.Institution + '</a><br><br>R1: Very high research<br>NIH 2019 = ' 
+                + locale.currency(df.Funding, grouping=True)[:-3] + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='darkblue', opacity=0.7).add_to(m) 
-    elif rating == 2:
+        folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
+                            color='darkblue', opacity=0.6).add_to(m) 
+    elif df.R_rating == 2:
         html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-                '<a href="' + site + '" target="_blank">'
-                + name + '</a><br><br>R2: High research<br>NIH 2019 = ' + locale.currency(dollas,grouping=True)[:-3] + '</p>' )
+                '<a href="' + df.Website + '" target="_blank">' 
+                + df.Institution + '</a><br><br>R1: Very high research<br>NIH 2019 = ' 
+                + locale.currency(df.Funding, grouping=True)[:-3] + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.CircleMarker([lat, long], radius = 7, fill=True,popup=popup, color='darkred', opacity=0.7).add_to(m) 
+        folium.CircleMarker([df.Lat, df.Long], radius = 7, fill=True, popup=popup, 
+                            color='darkred', opacity=0.6).add_to(m) 
 
 # markers outside USA
-for lat, long, name, site, pop in zip(df_nonUSA.Lat, df_nonUSA.Long, df_nonUSA.Institution, df_nonUSA.Website, df_nonUSA.Population):
-    
+for _, df in df_nonUSA.iterrows():
     html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-            '<a href="' + site + '" target="_blank">' 
-            + name + '</a><br><br>Population = ' + format(pop, ",d") + '</p>' )
+            '<a href="' + df.Website + '" target="_blank">' 
+            + df.Institution + '</a><br><br>Population = ' + format(df.Population, ",d") + '</p>' )
     el = branca.element.IFrame(html=html, width=250, height=105)
     popup = folium.Popup(el)
-    folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='#4C0099', opacity=0.7).add_to(m) 
+    folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
+                        color='#4C0099', opacity=0.7).add_to(m) 
      
 df_world = pd.concat([df_USA, df_nonUSA], sort=False)
 outputFile = "labFinder.html"
