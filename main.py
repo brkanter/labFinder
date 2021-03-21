@@ -182,7 +182,7 @@ for i, url in enumerate(df_nonUSA['Url_With_Coordinates']):
         df_nonUSA['Long'].iloc[i] = url.split('/@')[1].split(',')[1].split(',')[0]
     except:
         print(i)
-
+        
 locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
 
 m = folium.Map(location=[40, -40], zoom_start=2)
@@ -211,14 +211,13 @@ for lat, long, name, site, rating, dollas, funding in zip(df_USA.Lat, df_USA.Lon
 # markers outside USA
 for lat, long, name, site, pop in zip(df_nonUSA.Lat, df_nonUSA.Long, df_nonUSA.Institution, df_nonUSA.Website, df_nonUSA.Population):
     
-    pop_str = "%.0f" % pop
     html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
             '<a href="' + site + '" target="_blank">' 
-            + name + '</a><br><br>Population = ' + pop_str + '</p>' )
+            + name + '</a><br><br>Population = ' + format(pop, ",d") + '</p>' )
     el = branca.element.IFrame(html=html, width=250, height=105)
     popup = folium.Popup(el)
     folium.CircleMarker([lat, long], radius = 10, fill=True,popup=popup, color='#4C0099', opacity=0.7).add_to(m) 
-    
+     
 df_world = pd.concat([df_USA, df_nonUSA], sort=False)
 outputFile = "labFinder.html"
 m.save(outputFile)
