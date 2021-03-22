@@ -182,7 +182,7 @@ for _, df in df_USA.iterrows():
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
         folium.CircleMarker([df.Lat, df.Long], radius = 7, fill=True, popup=popup, 
-                            color='darkred', opacity=0.6).add_to(m) 
+                            color='#990000', opacity=0.6).add_to(m) 
 
 # markers outside USA
 for _, df in df_nonUSA.iterrows():
