@@ -264,7 +264,8 @@ with open('ALBA_map.pkl', 'rb') as pickl:
 df_manual['R_rating'] = 0
 df_alba['R_rating'] = -1
 df_world = pd.concat([df_USA, df_manual, df_alba], sort=False)
-df_world = df_world.drop_duplicates(subset=['Institution'])
+df_world = df_world.drop_duplicates(subset=['Institution']).reset_index()
+df_world = df_world.drop(index=[461, 786]).reset_index()
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
