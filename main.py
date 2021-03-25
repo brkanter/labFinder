@@ -140,6 +140,7 @@ for i in range(len(Url_With_Coordinates)):
     except:
         print(i)
 
+# correct GPS errors
 df_alba['Map_URL'].iloc[3] = 'https://www.google.com/maps/place/University+of+Science,+Malaysia/@5.3443068,100.2911741,14.5z/data=!4m8!1m2!2m1!1suniversiti+sains+malaysia!3m4!1s0x304ac1a836ae7e53:0x835ac54fe8f4d95a!8m2!3d5.3559337!4d100.3025177?hl=en'
 df_alba['Lat'].iloc[3] = 5.3443068
 df_alba['Long'].iloc[3] = 100.2911741
@@ -148,6 +149,9 @@ df_alba['Map_URL'].iloc[417] = 'https://www.google.com/maps/place/Instytut+Biolo
 df_alba['Lat'].iloc[417] = 52.2134611
 df_alba['Long'].iloc[417] = 20.9814754
 df_alba = df_alba.drop(index=[129, 497])
+
+# drop exact match institutions
+df_alba = df_alba.drop_duplicates(subset=['Country', 'Institution', 'Map_URL'])
 
 pickle.dump(df_alba, open("ALBA_map.pkl","wb"))
 
@@ -273,49 +277,54 @@ with open('nonUSA_map.pkl', 'rb') as pickl:
 with open('ALBA_map.pkl', 'rb') as pickl:
     df_alba = pickle.load(pickl)
     
+df_nonUSA['R_rating'] = 0
+df_alba['R_rating'] = -1
+df_world = pd.concat([df_USA, df_nonUSA, df_alba], sort=False)
+df_world = df_world.drop_duplicates(subset=['Country', 'Institution'])
+
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 m = folium.Map(location=[40, -40], zoom_start=2)
 
-# markers for USA
-for _, df in df_USA.iterrows():
-    if df.R_rating == 1:
+# markers
+for _, df in df_world.iterrows():
+    # alba network
+    if df.R_rating == -1:
         html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-                '<a href="' + df.Website + '" target="_blank">' 
-                + df.Institution + '</a><br><br>R1: Very high research<br>NIH 2019 = ' 
-                + locale.currency(df.Funding, grouping=True)[:-3] + '</p>' )
+                  + df.Institution + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
         folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
-                            color='darkblue', opacity=0.6).add_to(m) 
+                            color='darkorange', opacity=0.7, zIndexOffset=0).add_to(m) 
+    # manual list
+    elif df.R_rating == 0:
+        html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
+                 '<a href="' + df.Website + '" target="_blank">' 
+                 + df.Institution + '</a><br><br>Population = ' + format(int(df.Population), ",d") + '</p>' )
+        el = branca.element.IFrame(html=html, width=250, height=105)
+        popup = folium.Popup(el)
+        folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
+                            color='#4C0099', opacity=0.7, zIndexOffset=1).add_to(m)   
+    # wiki R2
     elif df.R_rating == 2:
         html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-                '<a href="' + df.Website + '" target="_blank">' 
-                + df.Institution + '</a><br><br>R1: Very high research<br>NIH 2019 = ' 
-                + locale.currency(df.Funding, grouping=True)[:-3] + '</p>' )
+                 '<a href="' + df.Website + '" target="_blank">' 
+                 + df.Institution + '</a><br><br>R1: Very high research<br>NIH 2019 = ' 
+                 + locale.currency(df.Funding, grouping=True)[:-3] + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
         folium.CircleMarker([df.Lat, df.Long], radius = 7, fill=True, popup=popup, 
-                            color='#990000', opacity=0.6).add_to(m) 
-
-# markers outside USA
-for _, df in df_nonUSA.iterrows():
-    html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-            '<a href="' + df.Website + '" target="_blank">' 
-            + df.Institution + '</a><br><br>Population = ' + format(df.Population, ",d") + '</p>' )
-    el = branca.element.IFrame(html=html, width=250, height=105)
-    popup = folium.Popup(el)
-    folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
-                        color='#4C0099', opacity=0.7).add_to(m) 
-    
-# markers for ALBA
-for _, df in df_alba.iterrows():
-    html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
-            + df.Institution + '</p>' )
-    el = branca.element.IFrame(html=html, width=250, height=105)
-    popup = folium.Popup(el)
-    folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
-                        color='darkorange', opacity=0.7).add_to(m) 
+                            color='#990000', opacity=0.6, zIndexOffset=2).add_to(m) 
+    # wiki R1
+    elif df.R_rating == 1:
+        html = ( '<p style="font-size:105%;font-name:Arial;text-align:left;"> '
+                 '<a href="' + df.Website + '" target="_blank">' 
+                 + df.Institution + '</a><br><br>R1: Very high research<br>NIH 2019 = ' 
+                 + locale.currency(df.Funding, grouping=True)[:-3] + '</p>' )
+        el = branca.element.IFrame(html=html, width=250, height=105)
+        popup = folium.Popup(el)
+        folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
+                            color='darkblue', opacity=0.6, zIndexOffset=3).add_to(m) 
      
 df_world = pd.concat([df_USA, df_nonUSA, df_alba], sort=False)
 outputFile = "labFinder.html"
