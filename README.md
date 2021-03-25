@@ -9,11 +9,9 @@ Browse around, click on pins, follow the links to university websites and check 
 ![Image](https://github.com/brkanter/labFinder/blob/master/screenshot.PNG)
 
 To do:
-  * Expand list of institutes.
-  * Restrict to neuroscience/neurobiology research, or somehow label by subject matter.
-  * Try to incorporate open positions / hiring information.
+  * Add missing information (eg. websites).
 
 Notes:
-  * Blue = R1 rating, Red = R2 rating, Purple = Other
+  * Blue = Carnegie R1 rating, Red = Carnegie R2 rating, Orange = ALBA network, Purple = manually added
 
 Please get in touch with suggestions and feedback.
