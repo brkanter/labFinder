@@ -121,7 +121,7 @@ for p in range(n_pg):
           
 print(len(institute_ls))
 
-# %%
+# %% alba network
 
 df_alba = pd.DataFrame([country_ls, institute_ls]).transpose()
 df_alba.columns = ['Country', 'Institution']
@@ -154,22 +154,6 @@ df_alba = df_alba.drop(index=[129, 497])
 df_alba = df_alba.drop_duplicates(subset=['Country', 'Institution', 'Map_URL'])
 
 pickle.dump(df_alba, open("ALBA_map.pkl","wb"))
-
-# print(len(country_ls))
-# url = 'http://www.alba.network/network'
-# page = requests.get(url)
-# soup = BeautifulSoup(page.text, 'html.parser')
-# soup.find_all('div')
-# prevLink = soup.select('a[rel="next"]')[0]
-# url_page = url + prevLink.get('href')
-# print(url_page)
-
-# <li class="pager__item pager__item--next">
-#           <a href="?search_api_fulltext=&amp;page=2" title="Go to next page" rel="next">
-#             <span class="visually-hidden">Next page</span>
-#             <span aria-hidden="true">Next ›</span>
-#           </a>
-#         </li>
 
 # %% get list of schools from Wikipedia and find them on GoogleMaps
 url = 'https://en.wikipedia.org/wiki/List_of_research_universities_in_the_United_States'
@@ -255,32 +239,32 @@ df_USA['Funding_scaled'] = ( ((30 * (df_USA['Funding'] - np.min(df_USA['Funding'
 # %% write data
 pickle.dump(df_USA, open("USA_map.pkl","wb"))
 
-# %% nonUSA map
-df_nonUSA = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\institutes.xlsx", sheet_name=0)
-df_nonUSA['Lat'] = 0
-df_nonUSA['Long'] = 0
-for i, url in enumerate(df_nonUSA['Url_With_Coordinates']):
+# %% manual map
+df_manual = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\institutes.xlsx", sheet_name=0)
+df_manual['Lat'] = 0
+df_manual['Long'] = 0
+for i, url in enumerate(df_manual['Url_With_Coordinates']):
     try:
-        df_nonUSA['Lat'].iloc[i] = url.split('/@')[1].split(',')[0]
-        df_nonUSA['Long'].iloc[i] = url.split('/@')[1].split(',')[1].split(',')[0]
+        df_manual['Lat'].iloc[i] = url.split('/@')[1].split(',')[0]
+        df_manual['Long'].iloc[i] = url.split('/@')[1].split(',')[1].split(',')[0]
     except:
         print(i)
     
-pickle.dump(df_nonUSA, open("nonUSA_map.pkl","wb"))
+pickle.dump(df_manual, open("manual_map.pkl","wb"))
 
 # %% make world map
 
 with open('USA_map.pkl', 'rb') as pickl:
     df_USA = pickle.load(pickl)
-with open('nonUSA_map.pkl', 'rb') as pickl:
-    df_nonUSA = pickle.load(pickl)
+with open('manual_map.pkl', 'rb') as pickl:
+    df_manual = pickle.load(pickl)
 with open('ALBA_map.pkl', 'rb') as pickl:
     df_alba = pickle.load(pickl)
     
-df_nonUSA['R_rating'] = 0
+df_manual['R_rating'] = 0
 df_alba['R_rating'] = -1
-df_world = pd.concat([df_USA, df_nonUSA, df_alba], sort=False)
-df_world = df_world.drop_duplicates(subset=['Country', 'Institution'])
+df_world = pd.concat([df_USA, df_manual, df_alba], sort=False)
+df_world = df_world.drop_duplicates(subset=['Institution'])
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
@@ -326,7 +310,6 @@ for _, df in df_world.iterrows():
         folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
                             color='darkblue', opacity=0.6, zIndexOffset=3).add_to(m) 
      
-df_world = pd.concat([df_USA, df_nonUSA, df_alba], sort=False)
 outputFile = "labFinder.html"
 m.save(outputFile)
 pickle.dump(df_world, open("world_map.pkl","wb"))
