@@ -6,7 +6,7 @@ Browse around, click on pins, follow the links to university websites and check 
 
 <a href="http://brkanter.com/labFinder.html" target="_blank">Explore</a>
 
-<a href="https://docs.google.com/spreadsheets/d/174BYV1022H4N86jv0CpNn_wZAyjDcxW3eo-Jw28XW3s/edit?usp=sharing" target="_blank">Add institutes/universities</a>
+<a href="https://docs.google.com/spreadsheets/d/174BYV1022H4N86jv0CpNn_wZAyjDcxW3eo-Jw28XW3s/edit#gid=1997163417" target="_blank">Add institutes/universities</a>
 
 ![Image](https://github.com/brkanter/labFinder/blob/master/screenshot.PNG)
 
