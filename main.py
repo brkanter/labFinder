@@ -240,7 +240,7 @@ df_USA['Funding_scaled'] = ( ((30 * (df_USA['Funding'] - np.min(df_USA['Funding'
 pickle.dump(df_USA, open("USA_map.pkl","wb"))
 
 # %% manual map
-df_manual = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\institutes.xlsx", sheet_name=0)
+df_manual = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\institutes.xlsx", sheet_name="Curated")
 df_manual['Lat'] = 0
 df_manual['Long'] = 0
 for i, url in enumerate(df_manual['Url_With_Coordinates']):
@@ -279,7 +279,7 @@ for _, df in df_world.iterrows():
                   + df.Institution + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
+        folium.CircleMarker([df.Lat, df.Long], radius = 8, fill=True, popup=popup, 
                             color='darkorange', opacity=0.7, zIndexOffset=0).add_to(m) 
     # manual list
     elif df.R_rating == 0:
@@ -288,7 +288,7 @@ for _, df in df_world.iterrows():
                  + df.Institution + '</a><br><br>Population = ' + format(int(df.Population), ",d") + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
+        folium.CircleMarker([df.Lat, df.Long], radius = 8, fill=True, popup=popup, 
                             color='#4C0099', opacity=0.7, zIndexOffset=1).add_to(m)   
     # wiki R2
     elif df.R_rating == 2:
@@ -308,7 +308,7 @@ for _, df in df_world.iterrows():
                  + locale.currency(df.Funding, grouping=True)[:-3] + '</p>' )
         el = branca.element.IFrame(html=html, width=250, height=105)
         popup = folium.Popup(el)
-        folium.CircleMarker([df.Lat, df.Long], radius = 10, fill=True, popup=popup, 
+        folium.CircleMarker([df.Lat, df.Long], radius = 8, fill=True, popup=popup, 
                             color='darkblue', opacity=0.6, zIndexOffset=3).add_to(m) 
      
 outputFile = "labFinder.html"
