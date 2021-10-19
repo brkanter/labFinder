@@ -4,7 +4,9 @@ Is there a map of research universities? I couldn't find one, so I'm working on 
 
 Browse around, click on pins, follow the links to university websites and check out what they have to offer.
 
-<a href="http://brkanter.com/labFinder.html" target="_blank">Check out it here</a>
+<a href="http://brkanter.com/labFinder.html" target="_blank">Explore</a>
+
+<a href="https://docs.google.com/spreadsheets/d/174BYV1022H4N86jv0CpNn_wZAyjDcxW3eo-Jw28XW3s/edit?usp=sharing" target="_blank">Add institutes/universities</a>
 
 ![Image](https://github.com/brkanter/labFinder/blob/master/screenshot.PNG)
 
