@@ -240,7 +240,7 @@ df_USA['Funding_scaled'] = ( ((30 * (df_USA['Funding'] - np.min(df_USA['Funding'
 pickle.dump(df_USA, open("USA_map.pkl","wb"))
 
 # %% manual map
-df_manual = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\institutes.xlsx", sheet_name="Curated")
+df_manual = pd.read_excel(r"C:\Users\benjamka\GitHub\labFinder\institutes.xlsx", sheet_name=0)
 df_manual['Lat'] = 0
 df_manual['Long'] = 0
 for i, url in enumerate(df_manual['Url_With_Coordinates']):
@@ -265,7 +265,7 @@ df_manual['R_rating'] = 0
 df_alba['R_rating'] = -1
 df_world = pd.concat([df_USA, df_manual, df_alba], sort=False)
 df_world = df_world.drop_duplicates(subset=['Institution']).reset_index()
-df_world = df_world.drop(index=[461, 786]).reset_index()
+# df_world = df_world.drop(index=[461, 786]).reset_index()
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
